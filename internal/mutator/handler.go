@@ -50,6 +50,8 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logger := h.logger.With("namespace", pod.ObjectMeta.Namespace).With("pod", pod.ObjectMeta.Name)
+
 	// Lookup the Pod's Namespace and check if it has the annotation set.
 	nodeSelector, err := getNodeSelectorFromNamespace(context.TODO(), h.client, pod.ObjectMeta.Namespace)
 	if err != nil {
@@ -58,6 +60,8 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(nodeSelector) == 0 {
+		logger.Info("skipping because no namespace node selectors found")
+
 		// No changes needed; return Allowed response without a patch
 		admissionReviewResponse := admissionv1.AdmissionReview{
 			Response: &admissionv1.AdmissionResponse{
@@ -74,6 +78,8 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	logger.Info(fmt.Sprintf("patching pod node selector: %s", nodeSelector))
 
 	patchBytes, err := json.Marshal([]map[string]interface{}{
 		{
@@ -103,7 +109,7 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("failed to encode admission review response: %v", err), http.StatusInternalServerError)
 	}
 
-	h.logger.Info("completed webhook mutate request")
+	logger.Info("completed webhook mutate request")
 }
 
 // Get the node selector for a given namespace.
