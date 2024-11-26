@@ -1,3 +1,4 @@
+// Package mutator for handling mutation requests.
 package mutator
 
 import (
@@ -17,6 +18,7 @@ import (
 // Annotation used to declare where a Pod should be scheduled.
 const annotation = "k8s-mutate-nodeselector.skpr.io/namespace"
 
+// Handler for responding to mutation requests.
 type Handler struct {
 	logger *slog.Logger
 	client clientcorev1.NamespaceInterface

@@ -26,7 +26,7 @@ type MockNamespaceClient struct {
 }
 
 // Get a mock response of namespace and error.
-func (m *MockNamespaceClient) Get(ctx context.Context, name string, opts metav1.GetOptions) (*corev1.Namespace, error) {
+func (m *MockNamespaceClient) Get(_ context.Context, _ string, _ metav1.GetOptions) (*corev1.Namespace, error) {
 	return m.Namespace, m.Error
 }
 

@@ -1,3 +1,4 @@
+// Package main is the entrypoint for our program.
 package main
 
 import (
@@ -44,7 +45,7 @@ func main() {
 		Short:   "Run the mutating webhook server",
 		Long:    cmdLong,
 		Example: cmdExample,
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
 
 			logger.Info("Starting server")
