@@ -65,16 +65,17 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	admissionReviewResponse := &admissionv1.AdmissionReview{
+		Response: &admissionv1.AdmissionResponse{
+			UID:     admissionReviewRequest.Request.UID,
+			Allowed: true,
+		},
+	}
+
+	admissionReviewResponse.SetGroupVersionKind(admissionReviewRequest.GroupVersionKind())
+
 	if len(nodeSelector) == 0 {
 		logger.Info("skipping because no namespace node selectors found")
-
-		// No changes needed; return Allowed response without a patch
-		admissionReviewResponse := admissionv1.AdmissionReview{
-			Response: &admissionv1.AdmissionResponse{
-				UID:     admissionReviewRequest.Request.UID,
-				Allowed: true,
-			},
-		}
 
 		w.Header().Set("Content-Type", "application/json")
 
@@ -104,14 +105,8 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct the AdmissionReview response
-	admissionReviewResponse := admissionv1.AdmissionReview{
-		Response: &admissionv1.AdmissionResponse{
-			UID:       admissionReviewRequest.Request.UID,
-			Allowed:   true,
-			Patch:     patchBytes,
-			PatchType: func() *admissionv1.PatchType { pt := admissionv1.PatchTypeJSONPatch; return &pt }(),
-		},
-	}
+	admissionReviewResponse.Response.Patch = patchBytes
+	admissionReviewResponse.Response.PatchType = func() *admissionv1.PatchType { pt := admissionv1.PatchTypeJSONPatch; return &pt }()
 
 	w.Header().Set("Content-Type", "application/json")
 
