@@ -39,14 +39,18 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	var admissionReviewRequest admissionv1.AdmissionReview
 
 	if err := json.NewDecoder(r.Body).Decode(&admissionReviewRequest); err != nil {
-		http.Error(w, fmt.Sprintf("failed to decode admission review: %v", err), http.StatusBadRequest)
+		msg := fmt.Sprintf("failed to decode admission review: %v", err)
+		h.logger.Error(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 
 	pod := &corev1.Pod{}
 
 	if err := json.Unmarshal(admissionReviewRequest.Request.Object.Raw, pod); err != nil {
-		http.Error(w, fmt.Sprintf("failed to unmarshal pod: %v", err), http.StatusBadRequest)
+		msg := fmt.Sprintf("failed to unmarshal pod: %v", err)
+		h.logger.Error(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 
@@ -55,7 +59,9 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Lookup the Pod's Namespace and check if it has the annotation set.
 	nodeSelector, err := getNodeSelectorFromNamespace(context.TODO(), h.client, pod.ObjectMeta.Namespace)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to get node selector: %v", err), http.StatusBadRequest)
+		msg := fmt.Sprintf("failed to get node selector: %v", err)
+		h.logger.Error(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 
@@ -73,7 +79,9 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		if err := json.NewEncoder(w).Encode(admissionReviewResponse); err != nil {
-			http.Error(w, fmt.Sprintf("failed to encode admission review response: %v", err), http.StatusInternalServerError)
+			msg := fmt.Sprintf("failed to encode admission review response: %v", err)
+			h.logger.Error(msg)
+			http.Error(w, msg, http.StatusInternalServerError)
 		}
 
 		return
@@ -89,7 +97,9 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to create patch: %v", err), http.StatusInternalServerError)
+		msg := fmt.Sprintf("failed to create patch: %v", err)
+		h.logger.Error(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
@@ -106,7 +116,9 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(admissionReviewResponse); err != nil {
-		http.Error(w, fmt.Sprintf("failed to encode admission review response: %v", err), http.StatusInternalServerError)
+		msg := fmt.Sprintf("failed to encode admission review response: %v", err)
+		h.logger.Error(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
 	}
 
 	logger.Info("completed webhook mutate request")
